@@ -1,63 +1,52 @@
-﻿import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
+import ModalNoticia from "./ModalNoticia";
 
-export default function Historico({ search }) {
+const Historico = () => {
   const [noticias, setNoticias] = useState([]);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [activePost, setActivePost] = useState(null);
+  const [noticiaSeleccionada, setNoticiaSeleccionada] = useState(null);
 
   useEffect(() => {
-    fetch('https://laliganoticias.com/wp-json/wp/v2/posts?categories=11&_embed&per_page=10')
-      .then(res => res.json())
-      .then(data => setNoticias(data));
+    fetch("https://laliganoticias.com/wp-json/wp/v2/posts?categories=11&_embed")
+      .then((res) => res.json())
+      .then(setNoticias);
   }, []);
 
-  const filtered = noticias.filter(n =>
-    n.title.rendered.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const openModal = (post) => {
-    setActivePost(post);
-    setModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setActivePost(null);
-    setModalOpen(false);
-  };
-
   return (
-    <div className='p-4'>
-      <h2 className='text-xl font-bold text-primary mb-2'>Histórico</h2>
-      <ul className='space-y-4'>
-        {filtered.map(n => {
-          const imgUrl = n._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
-          const excerpt = n.excerpt.rendered.replace(/<[^>]+>/g, '').slice(0, 100) + '...';
-          return (
-            <li key={n.id} className='p-2 border rounded shadow-sm flex flex-col md:flex-row gap-4 cursor-pointer' onClick={() => openModal(n)}>
-              {imgUrl && <img src={imgUrl} alt={n.title.rendered} className='w-full md:w-48 h-32 object-cover rounded' />}
-              <div>
-                <h3 className='font-semibold' dangerouslySetInnerHTML={{__html: n.title.rendered}} />
-                <p className='text-sm text-gray-700'>{excerpt}</p>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-
-      {modalOpen && activePost && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
-          <div className='bg-white rounded p-4 max-w-2xl w-full relative'>
-            <button
-  onClick={(e) => { e.stopPropagation(); closeModal(); }}
-  className='absolute top-2 right-2 text-gray-600 font-bold text-xl'
->
-  ×
-</button>
-            <h3 className='text-xl font-bold mb-2' dangerouslySetInnerHTML={{__html: activePost.title.rendered}} />
-            <div dangerouslySetInnerHTML={{__html: activePost.content.rendered}} className='text-gray-700' />
+    <div className="grid gap-6 p-6 sm:grid-cols-2 lg:grid-cols-3">
+      {noticias.map((n) => (
+        <div
+          key={n.id}
+          onClick={() => setNoticiaSeleccionada(n)}
+          className="bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer overflow-hidden"
+        >
+          {n._embedded?.["wp:featuredmedia"]?.[0]?.source_url && (
+            <img
+              src={n._embedded["wp:featuredmedia"][0].source_url}
+              alt={n.title.rendered}
+              className="w-full h-48 object-cover"
+            />
+          )}
+          <div className="p-4">
+            <h3
+              className="text-lg font-semibold mb-2 text-gray-800"
+              dangerouslySetInnerHTML={{ __html: n.title.rendered }}
+            />
+            <p
+              className="text-gray-600"
+              dangerouslySetInnerHTML={{
+                __html: n.excerpt.rendered.substring(0, 100) + "...",
+              }}
+            />
           </div>
         </div>
-      )}
+      ))}
+
+      <ModalNoticia
+        noticia={noticiaSeleccionada}
+        onClose={() => setNoticiaSeleccionada(null)}
+      />
     </div>
   );
-}
+};
+
+export default Historico;
