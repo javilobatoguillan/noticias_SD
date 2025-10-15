@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import ModalNoticia from "./ModalNoticia";
+import { Link } from "react-router-dom";
 
 const Noticias = ({ search }) => {
   const [noticias, setNoticias] = useState([]);
-  const [noticiaSeleccionada, setNoticiaSeleccionada] = useState(null);
 
   useEffect(() => {
     fetch("https://laliganoticias.com/wp-json/wp/v2/posts?categories=1&_embed")
@@ -11,7 +10,6 @@ const Noticias = ({ search }) => {
       .then(setNoticias);
   }, []);
 
-  // 🔍 Filtrar las noticias por el término de búsqueda
   const filteredNoticias = noticias.filter((n) =>
     n.title.rendered.toLowerCase().includes(search.toLowerCase())
   );
@@ -19,10 +17,10 @@ const Noticias = ({ search }) => {
   return (
     <div className="grid gap-6 p-6 sm:grid-cols-2 lg:grid-cols-3">
       {filteredNoticias.map((n) => (
-        <div
+        <Link
           key={n.id}
-          onClick={() => setNoticiaSeleccionada(n)}
-          className="bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer overflow-hidden"
+          to={`/noticia/${n.id}`}
+          className="block bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer overflow-hidden"
         >
           {n._embedded?.["wp:featuredmedia"]?.[0]?.source_url && (
             <img
@@ -43,7 +41,7 @@ const Noticias = ({ search }) => {
               }}
             />
           </div>
-        </div>
+        </Link>
       ))}
 
       {filteredNoticias.length === 0 && (
@@ -51,11 +49,6 @@ const Noticias = ({ search }) => {
           No hay resultados para “{search}”
         </p>
       )}
-
-      <ModalNoticia
-        noticia={noticiaSeleccionada}
-        onClose={() => setNoticiaSeleccionada(null)}
-      />
     </div>
   );
 };
