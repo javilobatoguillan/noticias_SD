@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ModalNoticia from "./ModalNoticia";
 
-const Resultados = () => {
+const Resultados = ({ search }) => {
   const [noticias, setNoticias] = useState([]);
   const [noticiaSeleccionada, setNoticiaSeleccionada] = useState(null);
 
@@ -11,9 +11,17 @@ const Resultados = () => {
       .then(setNoticias);
   }, []);
 
+  // 🔍 Filtrar por búsqueda (en título o excerpt)
+  const filteredNoticias = noticias.filter((n) => {
+    const title = n.title.rendered.toLowerCase();
+    const excerpt = n.excerpt.rendered.toLowerCase();
+    const query = search.toLowerCase();
+    return title.includes(query) || excerpt.includes(query);
+  });
+
   return (
     <div className="grid gap-6 p-6 sm:grid-cols-2 lg:grid-cols-3">
-      {noticias.map((n) => (
+      {filteredNoticias.map((n) => (
         <div
           key={n.id}
           onClick={() => setNoticiaSeleccionada(n)}
@@ -41,6 +49,12 @@ const Resultados = () => {
         </div>
       ))}
 
+      {filteredNoticias.length === 0 && (
+        <p className="text-center text-gray-500 w-full col-span-full">
+          No hay resultados para “{search}”
+        </p>
+      )}
+
       <ModalNoticia
         noticia={noticiaSeleccionada}
         onClose={() => setNoticiaSeleccionada(null)}
@@ -50,3 +64,4 @@ const Resultados = () => {
 };
 
 export default Resultados;
+
